@@ -1,17 +1,11 @@
-import copy
 from bisect import bisect_left
-#import numba
-#from numba import cuda
 #import pandas as pd
 import time
 import pygame
 from pygame.locals import *
 from sys import exit
-#import cupy as np
 import numpy as np
 from Neural import *
-#import code
-# code.interact(local=locals)
 
 
 def draw_tiles(surface, coordinates, inverted=False):
@@ -27,11 +21,9 @@ def draw_tiles(surface, coordinates, inverted=False):
     for n, tile in enumerate(range(y_tiles)):
         for m, _tile in enumerate(range(x_tiles)):
             if not m + n + i & 1:
-                pygame.draw.rect(surface, (255, 255, 255),
-                                 ((m * 50 + x0, n * 50 + y0), (50, 50)))
+                pygame.draw.rect(surface, (255, 255, 255), ((m * 50 + x0, n * 50 + y0), (50, 50)))
             else:
-                pygame.draw.rect(surface, (229, 228, 255),
-                                 ((m * 50 + x0, n * 50 + y0), (50, 50)))
+                pygame.draw.rect(surface, (229, 228, 255), ((m * 50 + x0, n * 50 + y0), (50, 50)))
 
 
 def level_1():
@@ -40,22 +32,17 @@ def level_1():
         draw_tiles(map_surf, ((211, 161), (711, 361)))
         draw_tiles(map_surf, ((161, 361), (261, 411)), True)
         draw_tiles(map_surf, ((661, 111), (761, 161)))
-        pygame.draw.rect(map_surf, color=checkpoint_color,
-                         rect=((11, 111), (150, 300)))
-        pygame.draw.rect(map_surf, color=checkpoint_color,
-                         rect=((761, 111), (150, 300)))
+        pygame.draw.rect(map_surf, color=checkpoint_color, rect=((11, 111), (150, 300)))
+        pygame.draw.rect(map_surf, color=checkpoint_color, rect=((761, 111), (150, 300)))
         individuals_surf.fill([255, 255, 255])
 
     def draw_walls():
         pygame.draw.lines(map_surf,
                           (0, 0, 0),
                           points=[(200, 155), (660, 155), (655, 155), (655, 100), (655, 105), (921, 105), (916, 105),
-                                  (916, 421), (916, 416), (751, 416), (756,
-                                                                       416), (756, 161), (756, 166), (711, 166),
-                                  (716, 166), (716, 371), (716, 366), (261,
-                                                                       366), (266, 366), (266, 421), (266, 416),
-                                  (0, 416), (5, 416), (5, 100), (5,
-                                                                 105), (171, 105), (166, 105), (166, 360),
+                                  (916, 421), (916, 416), (751, 416), (756, 416), (756, 161), (756, 166), (711, 166),
+                                  (716, 166), (716, 371), (716, 366), (261, 366), (266, 366), (266, 421), (266, 416),
+                                  (0, 416), (5, 416), (5, 100), (5, 105), (171, 105), (166, 105), (166, 360),
                                   (166, 355), (210, 355), (205, 355), (205, 160)],
                           width=11,
                           closed=False)
@@ -70,10 +57,8 @@ def level_1():
 
     initial_pos = np.array([86, 236])
     obstacles_ = [Obstacle(np.array([224.5, 186.5]), np.array([-11, 0]), vel_function),
-                  Obstacle(np.array([224.5, 286.5]),
-                           np.array([-11, 0]), vel_function),
-                  Obstacle(np.array([698.5, 336.5]),
-                           np.array([11, 0]), vel_function),
+                  Obstacle(np.array([224.5, 286.5]), np.array([-11, 0]), vel_function),
+                  Obstacle(np.array([698.5, 336.5]), np.array([11, 0]), vel_function),
                   Obstacle(np.array([698.5, 236.5]), np.array([11, 0]), vel_function)]
     return Run_Level(draw_background, draw_walls, obstacles_), initial_pos
 
@@ -95,37 +80,26 @@ class Run_Level:
 
 
 class Individual:
-    def __init__(self, pos, vel, vision_rays, neural_network, draw_ray_casting=False,
-                 output_function=Neuron.binary, color=None):
-        self.pos = pos
-        self.vel = vel
+    def __init__(self, vision_rays, neural_network, draw_ray_casting=False, output_function=Neuron.relu):
+        self.pos = deepcopy(initial_position)
+        self.vel = individual_vel
         self.vision_rays = vision_rays
         self.neural_network = neural_network
-        if color is None:
-            self.color = [random.randint(0, 255), random.randint(
-                0, 255), random.randint(0, 255)]
-        else:
-            self.color = color
+        self.color = [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)]
         self.draw_ray_casting = draw_ray_casting
         self.fitness = -1
         self.alive = True
         self.output_function = output_function
-        self.sensors_values = self._get_sensor_values(
-            fit_array, game_surf_collision_array)
+        self.sensors_values = self._get_sensor_values(fit_array, game_surf_collision_array)
         self.age = 0
         self.higher_fitness_time = None
         self.higher_fitness = -1
-        self.draw()
 
     def get_fitness(self):
-        self.fitness = self.get_position_fitness() ** 2
-
-    def blit(self):
-        if self.alive:
-            self.draw()
+        if self.higher_fitness == -1:
+            pass
         else:
-            self.draw_corpse()
-        screen.blit(individuals_surf, self.pos + np.array([483, 263]))
+            self.fitness = self.get_position_fitness() ** 2 - self.higher_fitness_time
 
     def get_higher_fitness(self):
         fitness = self.get_position_fitness()
@@ -134,9 +108,8 @@ class Individual:
             self.higher_fitness_time = time.time() - start_time
 
     def draw_corpse(self):
-        individuals_surf.set_alpha(50)
-        pygame.draw.rect(individuals_surf, (0, 0, 0), ((0, 0), (35, 35)))
-        pygame.draw.rect(individuals_surf, self.color, ((5, 5), (25, 25)))
+        pygame.draw.rect(individuals_surf, (0, 0, 0), ((self.pos[0] - 17, self.pos[1] - 17), (35, 35)))
+        pygame.draw.rect(individuals_surf, (150, 150, 150), ((self.pos[0] - 12, self.pos[1] - 12), (25, 25)))
 
     def die(self):
         self.alive = False
@@ -173,18 +146,14 @@ class Individual:
                 if pixel_array[px][py] == 0:
                     o = 1
                     is_wall = map_array[px][py] == -1
-                    colors[n] = self.color if is_wall else np.array(
-                        [255, 255, 255]) - self.color
-                    if colors[n][0] == 0:
-                        colors[n][0] += 1
+                    colors[n] = np.array([255, 0, 0]) if is_wall else np.array([1, 0, 255])
                     if not is_wall:
                         objects_in_sight[n] = 1  # obstacle
                     while True:
                         px = int(round((m - o) * cos_theta + self.pos[0], 0))
                         py = int(round((m - o) * sin_theta + self.pos[1], 0))
                         if not pixel_array[px, py] == 0:
-                            vision[n] = (
-                                np.sqrt(((m - o + 1) * cos_theta) ** 2 + ((m - o + 1) * sin_theta) ** 2))
+                            vision[n] = (np.sqrt(((m - o + 1) * cos_theta) ** 2 + ((m - o + 1) * sin_theta) ** 2))
                             coordinates[n] = np.array([px, py])
                             theta += d_theta
                             break
@@ -198,24 +167,13 @@ class Individual:
 
     def _get_obstacle_collision(self, pixel_array):
         collision = np.array([pixel_array[self.pos[0] - 17][self.pos[1]] == 0,  # left
-                              # left-down
-                              pixel_array[self.pos[0] - \
-                                          17][self.pos[1] - 17] == 0,
-                              # left-down
-                              pixel_array[self.pos[0] - \
-                                          17][self.pos[1] + 17] == 0,
-                              pixel_array[self.pos[0] + \
-                                          17][self.pos[1]] == 0,  # right
-                              # right-down
-                              pixel_array[self.pos[0] + \
-                                          17][self.pos[1] + 17] == 0,
-                              # right-up
-                              pixel_array[self.pos[0] + \
-                                          17][self.pos[1] - 17] == 0,
-                              pixel_array[self.pos[0]
-                                          ][self.pos[1] - 17] == 0,  # up
-                              pixel_array[self.pos[0]
-                                          ][self.pos[1] + 17] == 0  # down
+                              pixel_array[self.pos[0] - 17][self.pos[1] - 17] == 0,  # left-down
+                              pixel_array[self.pos[0] - 17][self.pos[1] + 17] == 0,  # left-down
+                              pixel_array[self.pos[0] + 17][self.pos[1]] == 0,  # right
+                              pixel_array[self.pos[0] + 17][self.pos[1] + 17] == 0,  # right-down
+                              pixel_array[self.pos[0] + 17][self.pos[1] - 17] == 0,  # right-down
+                              pixel_array[self.pos[0]][self.pos[1] - 17] == 0,  # up,
+                              pixel_array[self.pos[0]][self.pos[1] + 17] == 0  # down
                               ])
 
         if collision.any():
@@ -224,18 +182,16 @@ class Individual:
     def run(self, walls_collision_array, _obstacles_collision_array, game_surface_collision_array):
         self.move(self._get_movement(), walls_collision_array)
         self.get_higher_fitness()
-        self.sensors_values = self._get_sensor_values(
-            walls_collision_array, game_surface_collision_array)
+        self.sensors_values = self._get_sensor_values(walls_collision_array, game_surface_collision_array)
         self._get_obstacle_collision(_obstacles_collision_array)
+        self.draw()
 
     def _get_movement(self):
-        movement = [self.output_function(
-            m) for m in self.neural_network.evaluate(self.sensors_values)]
+        movement = [self.output_function(m) for m in self.neural_network.evaluate(self.sensors_values)]
         return movement
 
     def _get_sensor_values_alternative(self, wall_collision_array, game_surface_collision_array):
-        vision = self.vision(wall_collision_array,
-                             game_surface_collision_array)
+        vision = self.vision(wall_collision_array, game_surface_collision_array)
         inputs = np.zeros([2 * self.vision_rays + 4])
         for sensor_index in range(self.vision_rays):
             if vision[1][sensor_index] == 0:
@@ -244,13 +200,11 @@ class Individual:
                 inputs[sensor_index + self.vision_rays] = vision[0][sensor_index]
         fit_sensor = self.fit_sensor()
         for fit_index in range(4):
-            inputs[fit_index + 2 * self.vision_rays] = fit_sensor[fit_index] - \
-                fit_sensor[fit_index + 4]
+            inputs[fit_index + 2 * self.vision_rays] = fit_sensor[fit_index] - fit_sensor[fit_index + 4]
         return inputs
 
     def _get_sensor_values(self, wall_collision_array, game_surface_collision_array):
-        vision = self.vision(wall_collision_array,
-                             game_surface_collision_array)
+        vision = self.vision(wall_collision_array, game_surface_collision_array)
         inputs = np.zeros([2 * self.vision_rays + 8])
         for sensor_index in range(self.vision_rays):
             if vision[1][sensor_index] == 0:
@@ -294,23 +248,13 @@ class Individual:
             self.pos[1] += self.vel - n
 
     def draw(self):
-        individuals_surf.set_alpha(255)
-        pygame.draw.rect(individuals_surf, (0, 0, 0), ((0, 0), (35, 35)))
-        pygame.draw.rect(individuals_surf, self.color, ((5, 5), (25, 25)))
+        pygame.draw.rect(individuals_surf, (0, 0, 0), ((self.pos[0] - 17, self.pos[1] - 17), (35, 35)))
+        pygame.draw.rect(individuals_surf, self.color, ((self.pos[0] - 12, self.pos[1] - 12), (25, 25)))
 
     def _draw_ray_casting(self, coordinates, colors):
         for n, coordinate in enumerate(coordinates):
             pygame.draw.line(game_surf, colors[n], (self.pos[0], self.pos[1]),
                              (coordinate[0], coordinate[1]), width=1)
-
-    @staticmethod
-    def copy(_individual):
-        __individual = Individual(deepcopy(initial_position), _individual.vel, _individual.vision_rays,
-                                  deepcopy(
-                                      _individual.neural_network), _individual.draw_ray_casting,
-                                  _individual.output_function, deepcopy(_individual.color))
-        __individual.fitness = deepcopy(_individual.fitness)
-        return __individual
 
 
 class Obstacle:
@@ -355,8 +299,7 @@ def get_fit_array(final_pos):
                     if (map_array[testing_pixel[0]][testing_pixel[1]] == np.array([0, 0, 0])).all():
                         _fit_array[testing_pixel[0]][testing_pixel[1]] = -1
                     else:
-                        _fit_array[testing_pixel[0]
-                                   ][testing_pixel[1]] = fit_value
+                        _fit_array[testing_pixel[0]][testing_pixel[1]] = fit_value
                         new_evaluating_pixels.append(testing_pixel)
         evaluating_pixels = new_evaluating_pixels
         fit_value += 1
@@ -370,49 +313,41 @@ def get_next_gen(_best_parent):
         best_fitness = best_parent.fitness
     else:
         best_fitness = -1
-    for n, child in enumerate(childs[elite:]):
+    for n, child in enumerate(childs):
         if child.alive:
             child.get_fitness()
         child.alive = True
+        child.pos = deepcopy(initial_position)
         if child.fitness < parents[n].fitness:
             if parents[n].age > max_age or len(historical_fitnesses) == 0:
                 parents[n] = random_individual()
                 continue
-            childs[n] = Individual.copy(parents[n])
+            childs[n] = deepcopy(parents[n])
             if len(historical_fitnesses) > 0:
-                index = bisect_left(
-                    historical_fitnesses, individual.fitness, 0, len(historical_fitnesses))
+                index = bisect_left(historical_fitnesses, individual.fitness, 0, len(historical_fitnesses))
                 difference = len(historical_fitnesses) - index
                 proportionSimilar = difference / len(historical_fitnesses)
                 if random.random() < np.e ** (-proportionSimilar):
-                    parents[n] = deepcopy(child)
+                    parents[n] = child
                     parents[n].age += 1
                     continue
-                parents[n] = deepcopy(_best_parent)
+                parents[n] = _best_parent
                 parents[n].age = 0
         else:
-            parents[n] = deepcopy(child)
+            parents[n] = child
             parents[n].age = 0
-        if len(historical_fitnesses) == 0 or child.fitness > best_fitness:
-            historical_fitnesses.append(child.fitness)
-            _best_parent = deepcopy(child)
-            best_fitness = deepcopy(_best_parent.fitness)
-            # _best_parent.neural_network.write_data(document=f'{_best_parent.neural_network.name}_{len(historical_fitnesses)}')
-    for n, child in enumerate(childs[:elite]):
         if child.fitness > best_fitness:
             historical_fitnesses.append(child.fitness)
             _best_parent = deepcopy(child)
-            best_fitness = deepcopy(_best_parent.fitness)
-    for n, child in enumerate(childs[:elite]):
-        parents[n] = deepcopy(_best_parent)
+            best_fitness = _best_parent.fitness
+            #_best_parent.neural_network.write_data(document=f'{_best_parent.neural_network.name}_{len(historical_fitnesses)}')
     for n, parent in enumerate(parents):
         strategy = random.choice(strategies)
         childs[n] = strategy(parent)
-    for child in childs:
-        child.fitness = -1
-        child.pos = deepcopy(initial_position)
-        child.higher_fitness = -1
-        child.higher_fitness_time = None
+    #for child in childs:
+    #    child.fitness = -1
+    #    child.higher_fitness = -1
+    #    child.higher_fitness_time = None
     return historical_fitnesses, _best_parent
 
 
@@ -438,9 +373,8 @@ def layer_crossover_strategy(parent):
     donor = random.choice(parents)
     while donor == parent:
         donor = random.choice(parents)
-    child = deepcopy(parent)
-    child.neural_network = layer_crossover(
-        parent.neural_network, donor.neural_network, True)
+    child = deepcopy(donor)
+    child.neural_network = layer_crossover(parent.neural_network, donor.neural_network, True)
     donor_color_index = random.randint(0, 2)
     child.color[donor_color_index] = donor.color[donor_color_index]
     return child
@@ -451,26 +385,15 @@ def n_crossover_strategy(parent):
     while donor == parent:
         donor = random.choice(parents)
     child = deepcopy(donor)
-    child.neural_network = n_crossover(
-        parent.neural_network, donor.neural_network, True)
+    child.neural_network = n_crossover(parent.neural_network, donor.neural_network, True)
     donor_color_index = random.randint(0, 2)
     child.color[donor_color_index] = donor.color[donor_color_index]
     return child
 
 
-# @cuda.jit(target='cuda', forceobj=True)
-# def _run(individual, fit_array, obstacles_collision_array, game_surf_collision_array):
-#    individual.run(fit_array, obstacles_collision_array, game_surf_collision_array)
-
-
 def random_individual():
-    return Individual(deepcopy(initial_position), individual_vel, rays,
-                      random_homogeneous_network([rays * 2 + 8, 11, 11, 4], neurons_function='relu',
-                                                 neurons_second_step=None, weights=True, bias=False,
-                                                 rand_weight_range=10, rand_bias_range=None,
-                                                 custom_function=False, custom_second_step=False,
-                                                 name=True),
-                      output_function=Neuron.relu, draw_ray_casting=True)
+    return Individual(rays,
+                      clifford, draw_ray_casting=True)
 
 
 if __name__ == '__main__':
@@ -481,7 +404,7 @@ if __name__ == '__main__':
     pygame.display.set_caption('game')
     game_surf = pygame.surface.Surface((922, 522))
     map_surf = pygame.surface.Surface((922, 522))
-    individuals_surf = pygame.surface.Surface((35, 35))
+    individuals_surf = pygame.surface.Surface((922, 522))
     obstacles_surf = pygame.surface.Surface((922, 522))
     obstacles_surf.fill([255, 255, 255])
     map_surf.fill([255, 255, 255])
@@ -502,14 +425,18 @@ if __name__ == '__main__':
     # test = get_fit_array(np.array([836, 286]))
     # df = pd.DataFrame(test)
     # df.to_excel('test.xlsx', index=False)
-    pool_size = 40
-    elite = 5
+    pool_size = 25
     individual_vel = 4  # MIN 1, MAX 11
     rays = 16
-    #clifford = load_data(document='Clifford Calvin Ponce Adams Marciano Cooper Granado Harris Macinnes Turner Stewart Varghese Castro Markle Novotny Dow Escamilla Patock Beason Cogburn_102', name='Clifford Calvin Ponce Adams Marciano Cooper Granado Harris Macinnes Turner Stewart Varghese Castro Markle Novotny Dow Escamilla Patock Beason Cogburn')
-    #parents = [random_individual() for _ in range(pool_size)]
+    clifford = load_data(document='Clifford Calvin Ponce Adams Marciano Cooper Granado Harris Macinnes Turner Stewart Varghese Castro Markle Novotny Dow Escamilla Patock Beason Cogburn_102', name='Clifford Calvin Ponce Adams Marciano Cooper Granado Harris Macinnes Turner Stewart Varghese Castro Markle Novotny Dow Escamilla Patock Beason Cogburn')
     parents = [random_individual() for _ in range(pool_size)]
+    for parent in parents:
+        parent.neural_network.name = names.get_full_name()
+        parent.draw_ray_casting = True
     del game_surf_collision_array
+    for individual in parents:
+        individual.draw()
+        game_surf.blit(individuals_surf, (0, 0))
     game_surf.blit(obstacles_surf, (0, 0))
     run.obstacles_color()
     screen.blit(game_surf, (500, 280))
@@ -520,8 +447,8 @@ if __name__ == '__main__':
                   lambda parent: layer_crossover_strategy(parent),
                   lambda parent: mutate_strategy(parent),
                   lambda parent: uniform_mutate_strategy(parent)]
-    max_time = 10
-    max_age = 10
+    max_time = 15
+    max_age = 40
     generation = 0
     pygame.display.update()
     while True:
@@ -533,6 +460,7 @@ if __name__ == '__main__':
         screen.blit(game_surf, (500, 280))
         start_time = time.time()
         while time.time() <= max_time + start_time:
+            find = False
             for event in pygame.event.get():
                 if event.type == QUIT:
                     pygame.quit()
@@ -549,20 +477,18 @@ if __name__ == '__main__':
             game_surf.blit(map_surf, (0, 0))
             run.obstacles()
             game_surf.blit(obstacles_surf, (0, 0))
-            obstacles_collision_array = pygame.surfarray.pixels_red(
-                obstacles_surf)
+            obstacles_collision_array = pygame.surfarray.pixels_red(obstacles_surf)
             game_surf_collision_array = pygame.surfarray.pixels_red(game_surf)
             for individual in childs:
                 if individual.alive:
-                    #_run(individual, fit_array, obstacles_collision_array, game_surf_collision_array)
-                    individual.run(
-                        fit_array, obstacles_collision_array, game_surf_collision_array)
+                    individual.run(fit_array, obstacles_collision_array, game_surf_collision_array)
+                else:
+                    individual.draw_corpse()
             del obstacles_collision_array
             del game_surf_collision_array
             run.obstacles_color()
             screen.blit(game_surf, (500, 280))
-            for individual in childs:
-                individual.blit()
+            screen.blit(individuals_surf, (500, 280))
             pygame.display.update()
         obstacles_collision_array = pygame.surfarray.pixels_red(obstacles_surf)
         game_surf_collision_array = pygame.surfarray.pixels_red(game_surf)
