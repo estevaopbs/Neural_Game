@@ -1,0 +1,3 @@
+[submodule "venv/lib/python3.9/site-packages/Neural"]
+	path = venv/lib/python3.9/site-packages/Neural
+	url = https://github.com/estevaopbs/Neural
