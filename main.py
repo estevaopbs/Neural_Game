@@ -431,7 +431,7 @@ if __name__ == '__main__':
     clifford = load_data(document='Clifford Calvin Ponce Adams Marciano Cooper Granado Harris Macinnes Turner Stewart Varghese Castro Markle Novotny Dow Escamilla Patock Beason Cogburn_102', name='Clifford Calvin Ponce Adams Marciano Cooper Granado Harris Macinnes Turner Stewart Varghese Castro Markle Novotny Dow Escamilla Patock Beason Cogburn')
     parents = [random_individual() for _ in range(pool_size)]
     for parent in parents:
-        parent.neural_network.name = names.get_full_name()
+        parent.neural_network.name = get_full_name()
         parent.draw_ray_casting = True
     del game_surf_collision_array
     for individual in parents:
