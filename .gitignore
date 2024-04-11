@@ -2,3 +2,8 @@
 todo.txt
 *.png
 data
+.mypy_chace
+__pycache__
+*.pyc
+Neural
+venv
